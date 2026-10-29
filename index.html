@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>お酒と、わたし。</title>
+<meta name="theme-color" content="#9b6b43">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="お酒と、わたし。">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#f6f1e8; --card:#fffdf9; --ink:#2d2926; --muted:#7d746b;
+  --accent:#9b6b43; --line:#ded5ca; --soft:#efe4d6; --danger:#9b4545;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:10;background:rgba(246,241,232,.96);backdrop-filter:blur(10px);padding:18px 16px 10px;border-bottom:1px solid var(--line)}
+h1{font-size:24px;margin:0 0 4px}
+.sub{font-size:12px;color:var(--muted)}
+.title-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.header-illust{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.header-illust span,.lead-icons span{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--soft);font-size:18px}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+nav button{border:0;border-radius:12px;padding:10px 4px;background:var(--soft);font-size:12px;color:var(--ink)}
+nav button.active{background:var(--accent);color:white}
+main{max-width:760px;margin:auto;padding:14px 14px 40px}
+section{display:none}.show{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,0,0,.03)}
+.lead-card{display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;padding-right:96px}
+.lead-icons{display:flex;gap:8px;flex-shrink:0}
+.shuwappu-mini{position:absolute;right:12px;bottom:8px;width:76px;height:76px;object-fit:contain;filter:drop-shadow(0 3px 6px rgba(0,0,0,.08));pointer-events:none}
+.reminder-card{display:none;border-color:#e8c98e;background:#fff9ed}
+.reminder-card h2{margin-bottom:6px}
+.reminder-card .primary{margin-top:8px}
+.backup-status{padding:12px 14px;border-radius:14px;background:var(--soft);margin:10px 0}
+.backup-status strong{display:block;margin-bottom:4px}
+.backup-status.warn{background:#fff1d8;border:1px solid #e8c98e}
+.backup-status.ok{background:#eef7ed;border:1px solid #c9dfc5}
+details.danger-zone{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
+details.danger-zone summary{cursor:pointer;color:var(--danger);font-size:13px}
+.install-note{padding:12px 14px;border-radius:14px;background:#f3eadf;margin:10px 0}
+.install-ok{padding:10px 12px;border-radius:12px;background:#eef7ed;border:1px solid #c9dfc5;font-size:12px;margin-top:10px}
+h2{font-size:18px;margin:0 0 12px}
+h2 .ico{margin-right:6px}
+h3{font-size:15px;margin:16px 0 8px}
+label{display:block;font-size:13px;margin:10px 0 5px;color:#4a433d}
+input,select,textarea{width:100%;border:1px solid var(--line);background:white;border-radius:12px;padding:12px;font-size:16px;color:var(--ink)}
+textarea{min-height:88px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;border:1px solid var(--line);background:white;border-radius:999px;padding:9px 12px;font-size:14px}
+.chip input:checked + span{background:var(--accent);color:white;border-color:var(--accent)}
+.primary,.secondary,.danger{width:100%;border:0;border-radius:14px;padding:13px 16px;font-size:16px;font-weight:700;margin-top:10px}
+.primary{background:var(--accent);color:white}
+.secondary{background:var(--soft);color:var(--ink)}
+.danger{background:#f3dddd;color:var(--danger)}
+.small{font-size:12px;color:var(--muted);line-height:1.6}
+.entry{border-top:1px solid var(--line);padding:12px 0}
+.entry:first-child{border-top:0}
+.entry-title{font-weight:700}
+.entry-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:var(--soft);border-radius:16px;padding:14px}
+.stat b{display:block;font-size:24px}
+.badge{display:inline-block;background:var(--soft);padding:6px 10px;border-radius:999px;font-size:12px;margin:4px 4px 0 0}
+.empty{text-align:center;color:var(--muted);padding:28px 8px}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 18px 30px}
+@media(max-width:460px){.grid2{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.title-row,.lead-card{align-items:flex-start;flex-direction:column}.header-illust{justify-content:flex-start}.lead-card{padding-right:86px}.shuwappu-mini{width:68px;height:68px;right:10px;bottom:8px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <div>
+      <h1>お酒と、わたし。</h1>
+      <div class="sub">飲んだ自分を知る記録アプリ・試作版</div>
+    </div>
+    <div class="header-illust" aria-hidden="true"><span>🍺</span><span>🍷</span><span>🌙</span></div>
+  </div>
+  <nav>
+    <button class="active" data-tab="record">記録</button>
+    <button data-tab="history">履歴</button>
+    <button data-tab="insight">傾向</button>
+    <button data-tab="backup">保存</button>
+  </nav>
+</header>
+
+<main>
+<section id="record" class="show">
+  <div class="card lead-card">
+    <div class="lead-icons" aria-hidden="true"><span>🍺</span><span>😊</span><span>🍜</span></div>
+    <div>
+      <h2><span class="ico">✨</span>きょうの記録</h2>
+      <p class="small">思い出せる範囲で大丈夫。少しずつ記録すると、わたしのお酒のクセが見えてきます。</p>
+    </div>
+    <img class="shuwappu-mini" src="shuwappu.png" alt="しゅわっぷ">
+  </div>
+
+  <div id="morningReminder" class="card reminder-card">
+    <h2><span class="ico">🌅</span>翌朝の記録がまだです</h2>
+    <p id="morningReminderText" class="small"></p>
+    <button class="primary" id="morningReminderBtn">翌朝の調子を入力する</button>
+  </div>
+  <div id="backupReminder" class="card reminder-card">
+    <h2><span class="ico">🛟</span>バックアップしておこう</h2>
+    <p id="backupReminderText" class="small"></p>
+    <button class="primary" id="backupNowTop">今バックアップを保存する</button>
+  </div>
+  <div class="card">
+    <h2><span class="ico">🍺</span>今日のお酒</h2>
+    <div class="grid2">
+      <div><label>日付</label><input id="date" type="date"></div>
+      <div><label>飲み始め</label><input id="start" type="time"></div>
+    </div>
+    <label>飲み終わり</label><input id="end" type="time">
+
+    <label>何を飲んだ？</label>
+    <div class="chips">
+      <label class="chip"><input type="checkbox" name="drink" value="ビール"><span>🍺 ビール</span></label>
+      <label class="chip"><input type="checkbox" name="drink" value="ワイン"><span>🍷 ワイン</span></label>
+      <label class="chip"><input type="checkbox" name="drink" value="日本酒"><span>🍶 日本酒</span></label>
+      <label class="chip"><input type="checkbox" name="drink" value="ハイボール"><span>🥃 ハイボール</span></label>
+      <label class="chip"><input type="checkbox" name="drink" value="その他"><span>＋ その他</span></label>
+    </div>
+
+    <label>だいたいどのくらい？</label><input id="amount" placeholder="例：ビール2杯、ワイン1杯">
+    <div class="grid2">
+      <div><label>どこで？</label><input id="where" placeholder="家・居酒屋など"></div>
+      <div><label>誰と？</label><input id="with" placeholder="ひとり・友人など"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">💧</span>飲む前・飲んでいる時</h2>
+    <label>飲む前に食事した？</label>
+    <select id="meal"><option value="">選んでね</option><option>しっかり食べた</option><option>少し食べた</option><option>ほぼ空腹</option></select>
+    <label>お水は飲んだ？</label>
+    <select id="water"><option value="">選んでね</option><option>よく飲んだ</option><option>少し飲んだ</option><option>ほとんど飲んでない</option></select>
+    <label>その時の気分</label>
+    <select id="mood"><option value="">選んでね</option><option>楽しい</option><option>普通</option><option>疲れている</option><option>イライラ</option><option>さみしい</option><option>その他</option></select>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🕒</span>わたしの「酔いの境目」</h2>
+    <p class="small">覚えている範囲でOK。全部埋めなくても保存できます。</p>
+    <div class="grid2">
+      <div><label>酔ってきた</label><input id="tipsy" type="time"></div>
+      <div><label>かなり酔った</label><input id="drunk" type="time"></div>
+      <div><label>記憶があいまい</label><input id="fuzzy" type="time"></div>
+      <div><label>記憶が途切れた</label><input id="blackout" type="time"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">😊</span>酔った時の変化</h2>
+    <p class="small">「だいたい3杯目くらい」など、覚えている範囲でOK。空欄でも保存できます。</p>
+    <div class="grid2">
+      <div><label>何杯目から陽気になった？</label><input id="cheerfulCup" type="number" min="1" step="1" inputmode="numeric" placeholder="例：3"></div>
+      <div><label>何杯目から顔に出た？</label><input id="faceCup" type="number" min="1" step="1" inputmode="numeric" placeholder="例：2"></div>
+    </div>
+    <label>顔はどう変わった？</label>
+    <select id="faceChange"><option value="">変化なし・未入力</option><option>顔が赤くなった</option><option>顔色が悪くなった</option><option>青白くなった</option><option>目がトロンとした</option><option>その他</option></select>
+    <label>酔った時の自分</label>
+    <div class="chips">
+      <label class="chip"><input type="checkbox" name="behavior" value="陽気"><span>😊 陽気</span></label>
+      <label class="chip"><input type="checkbox" name="behavior" value="おしゃべり"><span>🗣️ おしゃべり</span></label>
+      <label class="chip"><input type="checkbox" name="behavior" value="眠くなる"><span>😴 眠くなる</span></label>
+      <label class="chip"><input type="checkbox" name="behavior" value="静かになる"><span>🤫 静かになる</span></label>
+      <label class="chip"><input type="checkbox" name="behavior" value="怒りっぽくなる"><span>😠 怒りっぽい</span></label>
+      <label class="chip"><input type="checkbox" name="behavior" value="泣きやすくなる"><span>🥲 泣きやすい</span></label>
+    </div>
+    <label>何杯目から記憶が怪しくなった？</label>
+    <input id="memoryCup" type="number" min="1" step="1" inputmode="numeric" placeholder="例：5">
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🍜</span>飲み終わった後</h2>
+    <label>その後の食欲は？</label>
+    <select id="afterAppetite"><option value="">選んでね</option><option>爆食いした</option><option>普通に食べた</option><option>少し食べた</option><option>食べなかった</option></select>
+    <label>何を食べた？（複数OK）</label>
+    <div class="chips">
+      <label class="chip"><input type="checkbox" name="afterFood" value="ラーメン・麺"><span>🍜 ラーメン・麺</span></label>
+      <label class="chip"><input type="checkbox" name="afterFood" value="ご飯もの"><span>🍚 ご飯もの</span></label>
+      <label class="chip"><input type="checkbox" name="afterFood" value="甘いもの"><span>🍰 甘いもの</span></label>
+      <label class="chip"><input type="checkbox" name="afterFood" value="おつまみ"><span>🥜 おつまみ</span></label>
+      <label class="chip"><input type="checkbox" name="afterFood" value="その他"><span>＋ その他</span></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="ico">🌅</span>帰宅と翌朝</h2>
+    <label>どうやって帰った？</label>
+    <select id="return"><option value="">選んでね</option><option>徒歩</option><option>電車</option><option>バス</option><option>タクシー</option><option>家で飲んだ</option><option>その他</option></select>
+    <label>翌朝の調子</label>
+    <select id="morning"><option value="">あとで入力でもOK</option><option>元気</option><option>少し眠い</option><option>だるい</option><option>頭痛</option><option>吐き気</option><option>二日酔い</option><option>記憶がない</option></select>
+    <label>ひとことメモ</label><textarea id="note" placeholder="楽しかったこと、失敗したこと、次はこうしたい…"></textarea>
+    <button class="primary" id="saveBtn">この日の記録を保存</button>
+    <button class="secondary" id="clearBtn">入力をリセット</button>
+  </div>
+</section>
+
+<section id="history">
+  <div class="card">
+    <h2><span class="ico">📚</span>これまでの記録</h2>
+    <div id="historyList"></div>
+  </div>
+</section>
+
+<section id="insight">
+  <div class="card">
+    <h2><span class="ico">📊</span>わたしの傾向</h2>
+    <div id="stats"></div>
+    <div id="patterns"></div>
+  </div>
+</section>
+
+<section id="backup">
+  <div class="card">
+    <h2><span class="ico">💾</span>データの保存</h2>
+    <p class="small">記録はこの端末のブラウザ内に保存されています。ブラウザのデータを完全に消すと記録も消えるため、定期的にバックアップファイルも保存しておくと安心です。</p>
+    <div id="backupStatus" class="backup-status"></div>
+    <button class="primary" id="exportJson">安全バックアップを保存する</button>
+    <button class="secondary" id="exportCsv">CSVでも保存する</button>
+    <h3>バックアップから戻す</h3>
+    <p class="small">以前に保存した「お酒とわたし_バックアップ_日付.json」を選んでください。</p>
+    <input type="file" id="importFile" accept=".json,application/json">
+    <button class="secondary" id="restoreRecovery">ブラウザ内の復旧コピーから戻す</button>
+    <p class="small">※復旧コピーは、記録を編集・削除する直前の状態を端末内に1つ残す機能です。ブラウザのデータ自体を消した場合は使えません。</p>
+    <details class="danger-zone">
+      <summary>⚠️ 危険な操作（全記録を削除）</summary>
+      <p class="small">ここは本当に全部消したい時だけ使ってください。先にバックアップ保存をおすすめします。</p>
+      <button class="danger" id="deleteAll">全記録を削除する</button>
+    </details>
+  </div>
+  <div class="card">
+    <h2><span class="ico">📱</span>スマホに入れる</h2>
+    <div class="install-note">
+      <strong>ホーム画面から、普通のアプリみたいに開けます。</strong>
+      <div class="small" style="margin-top:5px">対応しているChromeでは、下のボタンから追加できます。ボタンが出ない場合は、右上の「︙」→「ホーム画面に追加」を選んでください。</div>
+    </div>
+    <button class="primary" id="installBtn" style="display:none">ホーム画面に追加する</button>
+    <div id="installedMsg" class="install-ok" style="display:none">✓ この端末ではアプリとして開いています。</div>
+  </div>
+</section>
+</main>
+
+<footer>PWA版 v1.6　※医療判断を行うアプリではありません。</footer>
+
+<script>
+const KEY='osake_to_watashi_v1';
+const LAST_BACKUP_KEY='osake_to_watashi_last_backup';
+const RECOVERY_KEY='osake_to_watashi_recovery';
+let editingId=null;
+const $=id=>document.getElementById(id);
+function getData(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
+function saveRecoveryCopy(){
+  try{
+    const current=localStorage.getItem(KEY);
+    if(current) localStorage.setItem(RECOVERY_KEY,current);
+  }catch(e){}
+}
+function setData(v,{skipRecovery=false}={}){
+  if(!skipRecovery) saveRecoveryCopy();
+  localStorage.setItem(KEY,JSON.stringify(v));
+  renderBackupReminder();
+}
+function getRecoveryData(){
+  try{const d=JSON.parse(localStorage.getItem(RECOVERY_KEY)||'null'); return Array.isArray(d)?d:null}catch(e){return null}
+}
+function today(){const d=new Date(); return d.toISOString().slice(0,10)}
+$('date').value=today();
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('main section').forEach(s=>s.classList.remove('show'));
+  $(b.dataset.tab).classList.add('show');
+  if(b.dataset.tab==='history') renderHistory();
+  if(b.dataset.tab==='insight') renderInsights();
+});
+
+function formData(){
+  return {
+    id: editingId || Date.now().toString(),
+    date:$('date').value, start:$('start').value, end:$('end').value,
+    drinks:[...document.querySelectorAll('input[name=drink]:checked')].map(x=>x.value),
+    amount:$('amount').value.trim(), where:$('where').value.trim(), withWho:$('with').value.trim(),
+    meal:$('meal').value, water:$('water').value, mood:$('mood').value,
+    tipsy:$('tipsy').value, drunk:$('drunk').value, fuzzy:$('fuzzy').value, blackout:$('blackout').value,
+    cheerfulCup:$('cheerfulCup').value, faceCup:$('faceCup').value, faceChange:$('faceChange').value,
+    behaviors:[...document.querySelectorAll('input[name=behavior]:checked')].map(x=>x.value),
+    memoryCup:$('memoryCup').value, afterAppetite:$('afterAppetite').value,
+    afterFoods:[...document.querySelectorAll('input[name=afterFood]:checked')].map(x=>x.value),
+    returnWay:$('return').value, morning:$('morning').value, note:$('note').value.trim()
+  }
+}
+function resetForm(){
+  editingId=null;
+  document.querySelectorAll('#record input[type=text],#record input[type=time],#record input[type=number],#record textarea').forEach(x=>x.value='');
+  document.querySelectorAll('#record input[type=checkbox]').forEach(x=>x.checked=false);
+  document.querySelectorAll('#record select').forEach(x=>x.value='');
+  $('date').value=today();
+  $('saveBtn').textContent='この日の記録を保存';
+}
+$('clearBtn').onclick=()=>{ if(confirm('入力内容を消しますか？')) resetForm() }
+
+$('saveBtn').onclick=()=>{
+  const r=formData();
+  if(!r.date){alert('日付を入れてね');return}
+  let data=getData();
+  const i=data.findIndex(x=>x.id===r.id);
+  if(i>=0) data[i]=r; else data.push(r);
+  data.sort((a,b)=>b.date.localeCompare(a.date));
+  setData(data);
+  renderMorningReminder();
+  alert('保存しました 🍺');
+  resetForm();
+}
+
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function renderHistory(){
+  const data=getData(), box=$('historyList');
+  if(!data.length){box.innerHTML='<div class="empty">まだ記録がありません。<br>最初の1日を記録してみよう。</div>';return}
+  box.innerHTML=data.map(r=>`
+    <div class="entry">
+      <div class="entry-title">${escapeHtml(r.date)}　${escapeHtml((r.drinks||[]).join('・')||'お酒')}</div>
+      <div class="entry-meta">${escapeHtml(r.amount||'量の記録なし')}${(r.start||r.end)?` ／ ${escapeHtml(r.start||'--:--')}〜${escapeHtml(r.end||'--:--')}`:''} ／ 翌朝：${escapeHtml(r.morning||'未入力')}</div>
+      <div style="margin-top:8px">
+        ${r.mood?`<span class="badge">気分：${escapeHtml(r.mood)}</span>`:''}
+        ${r.meal?`<span class="badge">食事：${escapeHtml(r.meal)}</span>`:''}
+        ${r.water?`<span class="badge">水：${escapeHtml(r.water)}</span>`:''}
+        ${r.cheerfulCup?`<span class="badge">陽気：${escapeHtml(r.cheerfulCup)}杯目〜</span>`:''}
+        ${r.faceChange?`<span class="badge">顔：${escapeHtml(r.faceChange)}${r.faceCup?`（${escapeHtml(r.faceCup)}杯目〜）`:''}</span>`:''}
+        ${r.memoryCup?`<span class="badge">記憶：${escapeHtml(r.memoryCup)}杯目〜注意</span>`:''}
+        ${r.afterAppetite?`<span class="badge">飲酒後：${escapeHtml(r.afterAppetite)}</span>`:''}
+      </div>
+      ${r.note?`<div class="small" style="margin-top:8px">${escapeHtml(r.note)}</div>`:''}
+      <div class="grid2" style="margin-top:10px">
+        <button class="secondary" onclick="editRecord('${r.id}')">編集</button>
+        <button class="danger" onclick="deleteRecord('${r.id}')">削除</button>
+      </div>
+    </div>`).join('');
+}
+window.editRecord=id=>{
+  const r=getData().find(x=>x.id===id); if(!r)return;
+  editingId=id;
+  $('date').value=r.date||''; $('start').value=r.start||''; $('end').value=r.end||'';
+  document.querySelectorAll('input[name=drink]').forEach(x=>x.checked=(r.drinks||[]).includes(x.value));
+  $('amount').value=r.amount||''; $('where').value=r.where||''; $('with').value=r.withWho||'';
+  $('meal').value=r.meal||''; $('water').value=r.water||''; $('mood').value=r.mood||'';
+  $('tipsy').value=r.tipsy||''; $('drunk').value=r.drunk||''; $('fuzzy').value=r.fuzzy||''; $('blackout').value=r.blackout||'';
+  $('cheerfulCup').value=r.cheerfulCup||''; $('faceCup').value=r.faceCup||''; $('faceChange').value=r.faceChange||'';
+  document.querySelectorAll('input[name=behavior]').forEach(x=>x.checked=(r.behaviors||[]).includes(x.value));
+  $('memoryCup').value=r.memoryCup||''; $('afterAppetite').value=r.afterAppetite||'';
+  document.querySelectorAll('input[name=afterFood]').forEach(x=>x.checked=(r.afterFoods||[]).includes(x.value));
+  $('return').value=r.returnWay||''; $('morning').value=r.morning||''; $('note').value=r.note||'';
+  $('saveBtn').textContent='この日の記録を更新';
+  document.querySelector('[data-tab=record]').click(); window.scrollTo({top:0,behavior:'smooth'});
+}
+window.deleteRecord=id=>{
+  if(!confirm('この記録を削除しますか？'))return;
+  setData(getData().filter(x=>x.id!==id)); renderHistory(); renderMorningReminder();
+}
+
+function renderMorningReminder(){
+  const box=$('morningReminder');
+  const missing=getData()
+    .filter(r=>r.date && r.date<today() && !r.morning)
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  if(!missing.length){box.style.display='none';return}
+  const latest=missing[0];
+  box.style.display='block';
+  $('morningReminderText').textContent=missing.length===1
+    ? `${latest.date} の「翌朝の調子」がまだ未入力です。朝の状態を記録しておこう。`
+    : `${latest.date} など ${missing.length}件、「翌朝の調子」がまだ未入力です。まず最新の記録から入力しよう。`;
+  $('morningReminderBtn').onclick=()=>{
+    editRecord(latest.id);
+    setTimeout(()=>{
+      $('morning').scrollIntoView({behavior:'smooth',block:'center'});
+      $('morning').focus();
+    },180);
+  };
+}
+
+function formatDateTime(iso){
+  if(!iso)return 'まだバックアップしていません';
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime()))return 'まだバックアップしていません';
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function daysSince(iso){
+  if(!iso)return Infinity;
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime()))return Infinity;
+  return Math.floor((Date.now()-d.getTime())/86400000);
+}
+function renderBackupStatus(){
+  const box=$('backupStatus');
+  if(!box)return;
+  const last=localStorage.getItem(LAST_BACKUP_KEY);
+  const count=getData().length;
+  const age=daysSince(last);
+  if(!count){
+    box.className='backup-status ok';
+    box.innerHTML='<strong>まだ記録はありません</strong><span class="small">記録ができたら、バックアップできるようになります。</span>';
+  }else if(!last){
+    box.className='backup-status warn';
+    box.innerHTML=`<strong>⚠️ まだバックアップしていません</strong><span class="small">現在 ${count}件の記録があります。まず1回、バックアップを保存しておくと安心です。</span>`;
+  }else if(age>=7){
+    box.className='backup-status warn';
+    box.innerHTML=`<strong>⚠️ 最後のバックアップから ${age}日</strong><span class="small">最後：${formatDateTime(last)} ／ 現在 ${count}件。そろそろ保存しておくと安心です。</span>`;
+  }else{
+    box.className='backup-status ok';
+    box.innerHTML=`<strong>✅ バックアップ済み</strong><span class="small">最後：${formatDateTime(last)} ／ 現在 ${count}件の記録があります。</span>`;
+  }
+}
+function renderBackupReminder(){
+  const box=$('backupReminder');
+  if(!box)return;
+  const count=getData().length;
+  const last=localStorage.getItem(LAST_BACKUP_KEY);
+  const age=daysSince(last);
+  if(!count || (last && age<7)){box.style.display='none'; renderBackupStatus(); return}
+  box.style.display='block';
+  $('backupReminderText').textContent=!last
+    ? `記録が ${count}件あります。まだバックアップしていません。1回保存しておくと安心です。`
+    : `最後のバックアップから ${age}日たっています。今の記録を保存しておこう。`;
+  $('backupNowTop').onclick=exportBackup;
+  renderBackupStatus();
+}
+function exportBackup(){
+  const records=getData();
+  if(!records.length){alert('まだ記録がありません');return}
+  const exportedAt=new Date().toISOString();
+  const payload={app:'お酒と、わたし。',version:'1.6',exportedAt,records};
+  const ds=today().replace(/-/g,'');
+  download(`お酒とわたし_バックアップ_${ds}.json`,JSON.stringify(payload,null,2),'application/json');
+  localStorage.setItem(LAST_BACKUP_KEY,exportedAt);
+  renderBackupReminder();
+  alert('バックアップを保存しました 💾\n「ダウンロード」フォルダなどに入っています。');
+}
+
+function countBy(arr, key){
+  const m={}; arr.forEach(x=>{const v=x[key]; if(v)m[v]=(m[v]||0)+1}); return m
+}
+function topKey(m){return Object.entries(m).sort((a,b)=>b[1]-a[1])[0]}
+function avgCup(arr,key){
+  const vals=arr.map(x=>Number(x[key])).filter(x=>Number.isFinite(x)&&x>0);
+  if(!vals.length)return null;
+  return Math.round((vals.reduce((a,b)=>a+b,0)/vals.length)*10)/10;
+}
+function renderInsights(){
+  const d=getData(), box=$('stats'), p=$('patterns');
+  if(!d.length){box.innerHTML='<div class="empty">記録が増えると、ここに傾向が出ます。</div>';p.innerHTML='';return}
+  const bad=d.filter(x=>['頭痛','吐き気','二日酔い','記憶がない','だるい'].includes(x.morning)).length;
+  const fuzzy=d.filter(x=>x.fuzzy||x.blackout).length;
+  const cheerfulAvg=avgCup(d,'cheerfulCup');
+  const faceAvg=avgCup(d,'faceCup');
+  const memoryAvg=avgCup(d,'memoryCup');
+  const binge=d.filter(x=>x.afterAppetite==='爆食いした').length;
+  box.innerHTML=`<div class="stats">
+    <div class="stat"><span class="small">記録日数</span><b>${d.length}</b>日</div>
+    <div class="stat"><span class="small">翌朝つらかった日</span><b>${bad}</b>日</div>
+    <div class="stat"><span class="small">記憶あいまい/途切れ</span><b>${fuzzy}</b>日</div>
+    <div class="stat"><span class="small">水をよく飲んだ日</span><b>${d.filter(x=>x.water==='よく飲んだ').length}</b>日</div>
+    <div class="stat"><span class="small">陽気になる平均</span><b>${cheerfulAvg??'—'}</b>${cheerfulAvg?'杯目':''}</div>
+    <div class="stat"><span class="small">顔に出る平均</span><b>${faceAvg??'—'}</b>${faceAvg?'杯目':''}</div>
+    <div class="stat"><span class="small">記憶が怪しくなる平均</span><b>${memoryAvg??'—'}</b>${memoryAvg?'杯目':''}</div>
+    <div class="stat"><span class="small">飲酒後に爆食い</span><b>${binge}</b>日</div>
+  </div>`;
+  const msgs=[];
+  const mealBad=d.filter(x=>x.meal==='ほぼ空腹' && ['頭痛','吐き気','二日酔い','記憶がない','だるい'].includes(x.morning)).length;
+  const mealTotal=d.filter(x=>x.meal==='ほぼ空腹').length;
+  if(mealTotal>=2) msgs.push(`空腹で飲んだ ${mealTotal} 回のうち、翌朝つらかったのは ${mealBad} 回。`);
+  const waterBad=d.filter(x=>x.water==='ほとんど飲んでない' && ['頭痛','吐き気','二日酔い','記憶がない','だるい'].includes(x.morning)).length;
+  const waterTotal=d.filter(x=>x.water==='ほとんど飲んでない').length;
+  if(waterTotal>=2) msgs.push(`水をほとんど飲まなかった ${waterTotal} 回のうち、翌朝つらかったのは ${waterBad} 回。`);
+  const moodTop=topKey(countBy(d,'mood')); if(moodTop) msgs.push(`いちばん多い飲酒時の気分は「${moodTop[0]}」です（${moodTop[1]}回）。`);
+  const faceTop=topKey(countBy(d,'faceChange')); if(faceTop) msgs.push(`いちばん多い顔の変化は「${faceTop[0]}」です（${faceTop[1]}回）。`);
+  const behaviorCounts={}; d.forEach(r=>(r.behaviors||[]).forEach(v=>behaviorCounts[v]=(behaviorCounts[v]||0)+1));
+  const behaviorTop=topKey(behaviorCounts); if(behaviorTop) msgs.push(`酔った時はいちばん「${behaviorTop[0]}」になりやすいです（${behaviorTop[1]}回）。`);
+  const bingeBad=d.filter(x=>x.afterAppetite==='爆食いした' && ['頭痛','吐き気','二日酔い','記憶がない','だるい'].includes(x.morning)).length;
+  if(binge>=2) msgs.push(`飲酒後に爆食いした ${binge} 回のうち、翌朝つらかったのは ${bingeBad} 回。`);
+  p.innerHTML=msgs.length?'<h3>見えてきたこと</h3>'+msgs.map(x=>`<div class="badge">${escapeHtml(x)}</div>`).join(''):'<p class="small">3〜5回くらい記録すると、少しずつ傾向が見えてきます。</p>';
+}
+
+function download(name, text, type){
+  const blob=new Blob([text],{type}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href);
+}
+$('exportJson').onclick=exportBackup;
+$('exportCsv').onclick=()=>{
+  const d=getData();
+  const rows=[['日付','開始','終了','お酒','量','場所','誰と','食事','水','気分','酔ってきた','かなり酔った','記憶あいまい','記憶途切れ','陽気になる杯数','顔に出る杯数','顔の変化','酔った時の自分','記憶が怪しくなる杯数','飲酒後の食欲','飲酒後に食べた物','帰宅','翌朝','メモ'],
+  ...d.map(r=>[r.date,r.start,r.end,(r.drinks||[]).join('/'),r.amount,r.where,r.withWho,r.meal,r.water,r.mood,r.tipsy,r.drunk,r.fuzzy,r.blackout,r.cheerfulCup,r.faceCup,r.faceChange,(r.behaviors||[]).join('/'),r.memoryCup,r.afterAppetite,(r.afterFoods||[]).join('/'),r.returnWay,r.morning,r.note])];
+  const csv='\ufeff'+rows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  download('お酒とわたし_記録.csv',csv,'text/csv;charset=utf-8');
+}
+$('importFile').onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const parsed=JSON.parse(reader.result);
+      const d=Array.isArray(parsed)?parsed:parsed.records;
+      if(!Array.isArray(d))throw 0;
+      saveRecoveryCopy();
+      setData(d,{skipRecovery:true});
+      alert(`バックアップから ${d.length}件の記録を戻しました`);
+      renderHistory(); renderInsights(); renderMorningReminder(); renderBackupReminder();
+      e.target.value='';
+    }catch(err){alert('このファイルは読み込めませんでした')}
+  }; reader.readAsText(f);
+}
+$('restoreRecovery').onclick=()=>{
+  const d=getRecoveryData();
+  if(!d){alert('戻せる復旧コピーがまだありません');return}
+  if(!confirm(`復旧コピー（${d.length}件）に戻しますか？\n今の状態は復旧コピーとして入れ替えて残します。`))return;
+  const now=getData();
+  localStorage.setItem(RECOVERY_KEY,JSON.stringify(now));
+  setData(d,{skipRecovery:true});
+  renderHistory(); renderInsights(); renderMorningReminder(); renderBackupReminder();
+  alert('復旧コピーから戻しました');
+}
+$('deleteAll').onclick=()=>{
+  const d=getData();
+  if(!d.length){alert('削除する記録はありません');return}
+  if(!confirm(`本当に ${d.length}件の記録を全部削除しますか？\n間違い防止のため、直前の状態は「ブラウザ内の復旧コピー」に残します。`))return;
+  localStorage.setItem(RECOVERY_KEY,JSON.stringify(d));
+  localStorage.removeItem(KEY);
+  renderHistory();renderInsights();renderMorningReminder();renderBackupReminder();
+  alert('全記録を削除しました。間違いだった場合は「復旧コピーから戻す」で戻せます。')
+}
+
+renderMorningReminder();
+renderBackupReminder();
+
+// --- PWA: install + offline support ---
+let deferredInstallPrompt=null;
+const installBtn=$('installBtn');
+const installedMsg=$('installedMsg');
+
+function updateInstallUi(){
+  const standalone=window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+  if(standalone){
+    if(installBtn) installBtn.style.display='none';
+    if(installedMsg) installedMsg.style.display='block';
+  }
+}
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  if(installBtn) installBtn.style.display='block';
+});
+
+if(installBtn){
+  installBtn.addEventListener('click',async()=>{
+    if(!deferredInstallPrompt){
+      alert('右上の「︙」から「ホーム画面に追加」を選んでね。');
+      return;
+    }
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    installBtn.style.display='none';
+  });
+}
+
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  if(installBtn) installBtn.style.display='none';
+  if(installedMsg) installedMsg.style.display='block';
+});
+
+updateInstallUi();
+
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+  });
+}
+
+</script>
+</body>
+</html>
