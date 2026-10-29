@@ -70,6 +70,16 @@ textarea{min-height:88px;resize:vertical}
 .stat{background:var(--soft);border-radius:16px;padding:14px}
 .stat b{display:block;font-size:24px}
 .badge{display:inline-block;background:var(--soft);padding:6px 10px;border-radius:999px;font-size:12px;margin:4px 4px 0 0}
+.cup-counter{background:linear-gradient(180deg,#fff8ee,#fffdf9);border:2px solid #dcc5a9;text-align:center}
+.cup-count-label{font-size:13px;color:var(--muted);margin-bottom:2px}
+.cup-count{font-size:46px;font-weight:800;line-height:1.15;margin:4px 0 12px}
+.cup-count small{font-size:17px;font-weight:700}
+.cup-plus{width:100%;border:0;border-radius:18px;padding:18px 16px;font-size:22px;font-weight:800;background:var(--accent);color:white;box-shadow:0 5px 0 rgba(80,50,30,.18)}
+.cup-plus:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(80,50,30,.18)}
+.cup-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.cup-actions button{border:0;border-radius:12px;padding:10px;font-size:13px;background:var(--soft);color:var(--ink)}
+.cup-times{margin-top:12px;text-align:left;font-size:12px;color:var(--muted);line-height:1.8}
+.cup-times strong{color:var(--ink)}
 .empty{text-align:center;color:var(--muted);padding:28px 8px}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 18px 30px}
 @media(max-width:460px){.grid2{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.title-row,.lead-card{align-items:flex-start;flex-direction:column}.header-illust{justify-content:flex-start}.lead-card{padding-right:86px}.shuwappu-mini{width:68px;height:68px;right:10px;bottom:8px}}
@@ -113,6 +123,19 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 18px 30p
     <p id="backupReminderText" class="small"></p>
     <button class="primary" id="backupNowTop">今バックアップを保存する</button>
   </div>
+  <div class="card cup-counter">
+    <h2><span class="ico">🍻</span>今、何杯目？</h2>
+    <p class="small">1杯飲み終わるたびに、大きいボタンを1回押してね。押した時刻も自動で残ります。</p>
+    <div class="cup-count-label">今日のカウント</div>
+    <div class="cup-count"><span id="cupCount">0</span><small> 杯</small></div>
+    <button class="cup-plus" id="cupPlus">🍺 1杯飲んだ！ ＋1</button>
+    <div class="cup-actions">
+      <button id="cupMinus">↩ 1杯もどす</button>
+      <button id="cupReset">杯数を0にする</button>
+    </div>
+    <div id="cupTimes" class="cup-times">まだカウントはありません。</div>
+  </div>
+
   <div class="card">
     <h2><span class="ico">🍺</span>今日のお酒</h2>
     <div class="grid2">
@@ -251,13 +274,15 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 18px 30p
 </section>
 </main>
 
-<footer>PWA版 v1.6　※医療判断を行うアプリではありません。</footer>
+<footer>PWA版 v1.7　※医療判断を行うアプリではありません。</footer>
 
 <script>
 const KEY='osake_to_watashi_v1';
 const LAST_BACKUP_KEY='osake_to_watashi_last_backup';
 const RECOVERY_KEY='osake_to_watashi_recovery';
+const CUP_DRAFT_KEY='osake_to_watashi_cup_draft';
 let editingId=null;
+let cupLog=[];
 const $=id=>document.getElementById(id);
 function getData(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
 function saveRecoveryCopy(){
@@ -275,7 +300,45 @@ function getRecoveryData(){
   try{const d=JSON.parse(localStorage.getItem(RECOVERY_KEY)||'null'); return Array.isArray(d)?d:null}catch(e){return null}
 }
 function today(){const d=new Date(); return d.toISOString().slice(0,10)}
+function nowTime(){return new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',hour12:false})}
+function getCupDraft(){
+  try{const d=JSON.parse(localStorage.getItem(CUP_DRAFT_KEY)||'null'); return d&&Array.isArray(d.log)?d:null}catch(e){return null}
+}
+function saveCupDraft(){
+  try{localStorage.setItem(CUP_DRAFT_KEY,JSON.stringify({date:$('date').value||today(),log:cupLog}))}catch(e){}
+}
+function clearCupDraft(){try{localStorage.removeItem(CUP_DRAFT_KEY)}catch(e){}}
+function renderCupCounter(){
+  $('cupCount').textContent=cupLog.length;
+  $('cupTimes').innerHTML=cupLog.length
+    ? '<strong>押した時刻</strong><br>'+cupLog.map((t,i)=>`${i+1}杯目　${escapeHtml(t)}`).join('<br>')
+    : 'まだカウントはありません。';
+}
+function restoreCupDraftForDate(){
+  const d=getCupDraft();
+  cupLog=(d&&d.date===($('date').value||today()))?d.log:[];
+  renderCupCounter();
+}
 $('date').value=today();
+restoreCupDraftForDate();
+$('date').addEventListener('change',restoreCupDraftForDate);
+$('cupPlus').onclick=()=>{
+  const t=nowTime();
+  cupLog.push(t);
+  if(!$('start').value) $('start').value=t;
+  saveCupDraft();
+  renderCupCounter();
+};
+$('cupMinus').onclick=()=>{
+  if(!cupLog.length)return;
+  cupLog.pop();
+  saveCupDraft();
+  renderCupCounter();
+};
+$('cupReset').onclick=()=>{
+  if(!cupLog.length)return;
+  if(confirm('今日の杯数カウントを0に戻しますか？')){cupLog=[];saveCupDraft();renderCupCounter()}
+};
 
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
@@ -290,6 +353,7 @@ function formData(){
   return {
     id: editingId || Date.now().toString(),
     date:$('date').value, start:$('start').value, end:$('end').value,
+    cupCount:cupLog.length, cupLog:[...cupLog],
     drinks:[...document.querySelectorAll('input[name=drink]:checked')].map(x=>x.value),
     amount:$('amount').value.trim(), where:$('where').value.trim(), withWho:$('with').value.trim(),
     meal:$('meal').value, water:$('water').value, mood:$('mood').value,
@@ -307,6 +371,7 @@ function resetForm(){
   document.querySelectorAll('#record input[type=checkbox]').forEach(x=>x.checked=false);
   document.querySelectorAll('#record select').forEach(x=>x.value='');
   $('date').value=today();
+  cupLog=[]; clearCupDraft(); renderCupCounter();
   $('saveBtn').textContent='この日の記録を保存';
 }
 $('clearBtn').onclick=()=>{ if(confirm('入力内容を消しますか？')) resetForm() }
@@ -331,7 +396,7 @@ function renderHistory(){
   box.innerHTML=data.map(r=>`
     <div class="entry">
       <div class="entry-title">${escapeHtml(r.date)}　${escapeHtml((r.drinks||[]).join('・')||'お酒')}</div>
-      <div class="entry-meta">${escapeHtml(r.amount||'量の記録なし')}${(r.start||r.end)?` ／ ${escapeHtml(r.start||'--:--')}〜${escapeHtml(r.end||'--:--')}`:''} ／ 翌朝：${escapeHtml(r.morning||'未入力')}</div>
+      <div class="entry-meta">${escapeHtml(r.amount||'量の記録なし')}${r.cupCount?` ／ カウント：${escapeHtml(r.cupCount)}杯`:''}${(r.start||r.end)?` ／ ${escapeHtml(r.start||'--:--')}〜${escapeHtml(r.end||'--:--')}`:''} ／ 翌朝：${escapeHtml(r.morning||'未入力')}</div>
       <div style="margin-top:8px">
         ${r.mood?`<span class="badge">気分：${escapeHtml(r.mood)}</span>`:''}
         ${r.meal?`<span class="badge">食事：${escapeHtml(r.meal)}</span>`:''}
@@ -340,6 +405,7 @@ function renderHistory(){
         ${r.faceChange?`<span class="badge">顔：${escapeHtml(r.faceChange)}${r.faceCup?`（${escapeHtml(r.faceCup)}杯目〜）`:''}</span>`:''}
         ${r.memoryCup?`<span class="badge">記憶：${escapeHtml(r.memoryCup)}杯目〜注意</span>`:''}
         ${r.afterAppetite?`<span class="badge">飲酒後：${escapeHtml(r.afterAppetite)}</span>`:''}
+        ${(r.cupLog||[]).length?`<span class="badge">杯数記録：${(r.cupLog||[]).map((t,i)=>`${i+1}杯目 ${escapeHtml(t)}`).join(' / ')}</span>`:''}
       </div>
       ${r.note?`<div class="small" style="margin-top:8px">${escapeHtml(r.note)}</div>`:''}
       <div class="grid2" style="margin-top:10px">
@@ -352,6 +418,7 @@ window.editRecord=id=>{
   const r=getData().find(x=>x.id===id); if(!r)return;
   editingId=id;
   $('date').value=r.date||''; $('start').value=r.start||''; $('end').value=r.end||'';
+  cupLog=Array.isArray(r.cupLog)?[...r.cupLog]:[]; saveCupDraft(); renderCupCounter();
   document.querySelectorAll('input[name=drink]').forEach(x=>x.checked=(r.drinks||[]).includes(x.value));
   $('amount').value=r.amount||''; $('where').value=r.where||''; $('with').value=r.withWho||'';
   $('meal').value=r.meal||''; $('water').value=r.water||''; $('mood').value=r.mood||'';
@@ -498,8 +565,8 @@ function download(name, text, type){
 $('exportJson').onclick=exportBackup;
 $('exportCsv').onclick=()=>{
   const d=getData();
-  const rows=[['日付','開始','終了','お酒','量','場所','誰と','食事','水','気分','酔ってきた','かなり酔った','記憶あいまい','記憶途切れ','陽気になる杯数','顔に出る杯数','顔の変化','酔った時の自分','記憶が怪しくなる杯数','飲酒後の食欲','飲酒後に食べた物','帰宅','翌朝','メモ'],
-  ...d.map(r=>[r.date,r.start,r.end,(r.drinks||[]).join('/'),r.amount,r.where,r.withWho,r.meal,r.water,r.mood,r.tipsy,r.drunk,r.fuzzy,r.blackout,r.cheerfulCup,r.faceCup,r.faceChange,(r.behaviors||[]).join('/'),r.memoryCup,r.afterAppetite,(r.afterFoods||[]).join('/'),r.returnWay,r.morning,r.note])];
+  const rows=[['日付','開始','終了','杯数カウント','杯ごとの時刻','お酒','量','場所','誰と','食事','水','気分','酔ってきた','かなり酔った','記憶あいまい','記憶途切れ','陽気になる杯数','顔に出る杯数','顔の変化','酔った時の自分','記憶が怪しくなる杯数','飲酒後の食欲','飲酒後に食べた物','帰宅','翌朝','メモ'],
+  ...d.map(r=>[r.date,r.start,r.end,r.cupCount||'',(r.cupLog||[]).join('/'),(r.drinks||[]).join('/'),r.amount,r.where,r.withWho,r.meal,r.water,r.mood,r.tipsy,r.drunk,r.fuzzy,r.blackout,r.cheerfulCup,r.faceCup,r.faceChange,(r.behaviors||[]).join('/'),r.memoryCup,r.afterAppetite,(r.afterFoods||[]).join('/'),r.returnWay,r.morning,r.note])];
   const csv='\ufeff'+rows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
   download('お酒とわたし_記録.csv',csv,'text/csv;charset=utf-8');
 }
